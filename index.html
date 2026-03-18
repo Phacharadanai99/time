@@ -162,6 +162,45 @@
             100% { transform: scale(1.05); box-shadow: 0 0 30px rgba(251, 113, 133, 0.6); }
         }
 
+        /* กล่องแจ้งเตือนตู้ลงทะเบียน */
+        .kiosk-alert {
+            position: fixed;
+            top: 15vh;
+            left: 50%;
+            transform: translate(-50%, -20px);
+            background: rgba(220, 38, 38, 0.9); /* สีแดงโปร่งแสง */
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1vw 3vw;
+            border-radius: 20px;
+            font-size: 2vw;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(220, 38, 38, 0.6);
+            border: 2px solid #f87171;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 1vw;
+        }
+
+        .kiosk-alert.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .kiosk-countdown-number {
+            font-size: 3.5vw;
+            font-weight: 700;
+            color: #fef08a; /* สีเหลือง */
+            font-variant-numeric: tabular-nums;
+            min-width: 4vw;
+            text-align: center;
+            display: inline-block;
+        }
+
         /* ส่วนแสดงกะการทำงาน */
         .shift-board {
             display: flex;
@@ -233,6 +272,11 @@
     <!-- เส้นวิ่งวินาทีขอบบน -->
     <div class="sec-progress-bg">
         <div class="sec-progress-bar" id="secBar"></div>
+    </div>
+
+    <!-- กล่องแจ้งเตือนตู้ลงทะเบียน (ซ่อนไว้ก่อน) -->
+    <div class="kiosk-alert" id="kioskAlert">
+        <span>⚠️</span> ตู้ลงทะเบียนอัตโนมัติกำลังจะปิดในอีก <span class="kiosk-countdown-number" id="kioskCountdown">10</span> วินาที
     </div>
 
     <div class="hospital-header">ห้องเวชระเบียน โรงพยาบาลพะเยา</div>
@@ -370,6 +414,22 @@
                     countdownEl.innerHTML = `⏳ นับถอยหลังสู่ <b>${nextHoliday.name}</b> อีก <b>${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วินาที</b>`;
                     countdownEl.classList.remove('holiday-active'); // ปิดเอฟเฟกต์เมื่อยังไม่ถึงวัน
                 }
+            }
+
+            // 4.5 ตรวจสอบและแสดงแจ้งเตือนตู้ลงทะเบียนอัตโนมัติ (14:59:50 - 14:59:59)
+            // ยกเว้นเสาร์-อาทิตย์ และวันหยุดนักขัตฤกษ์ (ที่มีใน holidays)
+            const isWeekend = (now.getDay() === 0 || now.getDay() === 6);
+            const isHolidayToday = holidays.some(h => h.month === now.getMonth() && h.date === now.getDate());
+            
+            const kioskAlertEl = document.getElementById('kioskAlert');
+            const kioskCountdownEl = document.getElementById('kioskCountdown');
+
+            if (!isWeekend && !isHolidayToday && h === 14 && m === 59 && s >= 50) {
+                const timeLeft = 60 - s; // นับถอยหลังจาก 10 ถึง 1
+                kioskCountdownEl.textContent = timeLeft;
+                kioskAlertEl.classList.add('show');
+            } else {
+                kioskAlertEl.classList.remove('show');
             }
 
             // 5. ตรวจสอบกะการทำงาน (Shift Logic)
