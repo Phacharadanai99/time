@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สกรีนเซฟเวอร์ - ห้องเวชระเบียน รพ.พะเยา</title>
+    
+    <!-- นำเข้าฟอนต์ Kanit จาก Google Fonts เพื่อให้สวยงามและอ่านง่าย -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite, initialFadeIn 1.5s ease-out;
+            color: #ffffff;
+            font-family: 'Kanit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes initialFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* เอฟเฟกต์แสงออร่าพื้นหลังฟุ้งๆ (Ambient Glowing Orbs) */
+        .ambient-orbs {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: -1; /* ซ่อนไว้หลังสุด */
+            pointer-events: none; /* ไม่ให้กวนการคลิก */
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px); /* เบลอให้ฟุ้งที่สุด เพื่อความสบายตา */
+            opacity: 0.35;
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+
+        .orb-1 { width: 45vw; height: 45vw; background: #0284c7; top: -10%; left: -10%; animation-duration: 25s; }
+        .orb-2 { width: 35vw; height: 35vw; background: #7e22ce; bottom: -10%; right: -5%; animation-duration: 32s; animation-delay: -5s; }
+        .orb-3 { width: 40vw; height: 40vw; background: #0f766e; top: 40%; left: 30%; animation-duration: 28s; animation-delay: -12s; }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(3vw, 4vh) scale(1.05); }
+            100% { transform: translate(-2vw, -3vh) scale(0.95); }
+        }
+
+        /* เส้นวิ่งความคืบหน้าวินาทีขอบจอบน */
+        .sec-progress-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .sec-progress-bar {
+            height: 100%; width: 0%; 
+            background: linear-gradient(90deg, #38bdf8, #a855f7);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            transition: width 1s linear;
+        }
+
+        /* ส่วนหัว: ชื่อห้องและโรงพยาบาล */
+        .hospital-header {
+            font-size: 3.5vw;
+            font-weight: 700;
+            color: #38bdf8; /* สีฟ้าน้ำทะเล */
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            margin-bottom: 1vh;
+            letter-spacing: 2px;
+        }
+
+        /* ส่วนนาฬิกา */
+        .clock-container {
+            font-size: 14vw;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 1vh;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            font-variant-numeric: tabular-nums; /* ทำให้ตัวเลขกว้างเท่ากัน นาฬิกาจะไม่ขยับไปมา */
+        }
+
+        .colon {
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        /* ส่วนวันที่ */
+        .date-container {
+            font-size: 2.5vw;
+            font-weight: 300;
+            color: #cbd5e1;
+            margin-bottom: 2vh;
+            letter-spacing: 1px;
+        }
+
+        /* ส่วนข้อความทักทาย */
+        .greeting-container {
+            font-size: 2.2vw;
+            font-weight: 400;
+            color: #f8fafc;
+            margin-bottom: 2vh;
+            text-align: center;
+            min-height: 3vw;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* ส่วนนับถอยหลังเทศกาล */
+        .countdown-container {
+            font-size: 1.5vw;
+            font-weight: 300;
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1vh 2.5vw;
+            border-radius: 30px;
+            margin-bottom: 5vh;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-variant-numeric: tabular-nums; /* เพิ่มให้ตัวเลขเวลาวิ่งแล้วกรอบไม่กระตุก */
+        }
+        
+        .countdown-container b {
+            color: #fb7185; /* สีชมพูอมแดงเน้นข้อความ */
+            font-weight: 600;
+        }
+
+        /* เอฟเฟกต์พิเศษเมื่อถึงวันเทศกาล */
+        .holiday-active {
+            background: rgba(251, 113, 133, 0.15) !important;
+            border: 1px solid rgba(251, 113, 133, 0.6) !important;
+            box-shadow: 0 0 25px rgba(251, 113, 133, 0.4) !important;
+            animation: holidayPulse 1.5s ease-in-out infinite alternate !important;
+        }
+
+        @keyframes holidayPulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 113, 133, 0.2); }
+            100% { transform: scale(1.05); box-shadow: 0 0 30px rgba(251, 113, 133, 0.6); }
+        }
+
+        /* ส่วนแสดงกะการทำงาน */
+        .shift-board {
+            display: flex;
+            gap: 2vw;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .shift-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5vw 2.5vw;
+            text-align: center;
+            opacity: 0.3; /* ค่าเริ่มต้นให้จางไว้ก่อน */
+            transition: all 0.5s ease;
+            width: 20vw;
+            min-width: 220px;
+        }
+
+        /* เมื่อกะนั้นๆ กำลังทำงาน (Active) */
+        .shift-card.active {
+            opacity: 1;
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: scale(1.05) translateY(0px); }
+            50% { transform: scale(1.05) translateY(-8px); }
+            100% { transform: scale(1.05) translateY(0px); }
+        }
+
+        /* สีสันตกแต่งสำหรับแต่ละกะเมื่อ Active */
+        #shift-D.active { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4); } /* สีส้ม-เช้า */
+        #shift-E.active { border-color: #a855f7; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); } /* สีม่วง-บ่าย */
+        #shift-N.active { border-color: #3b82f6; box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); } /* สีน้ำเงิน-ดึก */
+        #shift-7.active { border-color: #10b981; box-shadow: 0 0 25px rgba(16, 185, 129, 0.4); } /* สีเขียว-เช้าตรู่ */
+
+        .shift-name {
+            font-size: 2vw;
+            font-weight: 600;
+            margin-bottom: 0.5vh;
+        }
+
+        .shift-time {
+            font-size: 1.2vw;
+            font-weight: 300;
+            color: #e2e8f0;
+        }
+
+        #shift-D .shift-name { color: #f59e0b; }
+        #shift-E .shift-name { color: #a855f7; }
+        #shift-N .shift-name { color: #3b82f6; }
+        #shift-7 .shift-name { color: #10b981; }
+
+    </style>
+</head>
+<body>
+
+    <!-- พื้นหลังออร่า -->
+    <div class="ambient-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- เส้นวิ่งวินาทีขอบบน -->
+    <div class="sec-progress-bg">
+        <div class="sec-progress-bar" id="secBar"></div>
+    </div>
+
+    <div class="hospital-header">ห้องเวชระเบียน โรงพยาบาลพะเยา</div>
+    
+    <div class="clock-container" id="clock">
+        <span id="hours">00</span><span class="colon">:</span><span id="minutes">00</span><span class="colon">:</span><span id="seconds">00</span>
+    </div>
+    
+    <div class="date-container" id="date">กำลังโหลดวันที่...</div>
+
+    <div class="greeting-container" id="greeting">กำลังโหลดข้อความ...</div>
+
+    <div class="countdown-container" id="countdown">กำลังคำนวณเทศกาล...</div>
+
+    <div class="shift-board">
+        <!-- เวรเช้าตรู่ -->
+        <div class="shift-card" id="shift-7">
+            <div class="shift-name">เวรเช้าตรู่ (7)</div>
+            <div class="shift-time">07.00 - 15.00 น.</div>
+        </div>
+        
+        <!-- เวรเช้า -->
+        <div class="shift-card" id="shift-D">
+            <div class="shift-name">เวรเช้า (D)</div>
+            <div class="shift-time">08.00 - 16.00 น.</div>
+        </div>
+
+        <!-- เวรบ่าย -->
+        <div class="shift-card" id="shift-E">
+            <div class="shift-name">เวรบ่าย (E)</div>
+            <div class="shift-time">16.00 - 24.00 น.</div>
+        </div>
+
+        <!-- เวรดึก -->
+        <div class="shift-card" id="shift-N">
+            <div class="shift-name">เวรดึก (N)</div>
+            <div class="shift-time">00.00 - 08.00 น.</div>
+        </div>
+    </div>
+
+    <script>
+        function updateClockAndShift() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes();
+            const s = now.getSeconds();
+
+            // 1. อัปเดตตัวเลขนาฬิกา
+            document.getElementById('hours').textContent = h.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = m.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = s.toString().padStart(2, '0');
+
+            // 1.5 อัปเดตเส้นวิ่งวินาทีขอบจอบน (0 ถึง 100%)
+            const secPercent = (s / 59) * 100;
+            document.getElementById('secBar').style.width = secPercent + "%";
+
+            // 2. อัปเดตวันที่ (ภาษาไทย)
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date').textContent = now.toLocaleDateString('th-TH', options);
+
+            // 3. อัปเดตข้อความทักทายตามช่วงเวลา
+            let greetingText = "";
+            if (h >= 0 && h < 7) {
+                greetingText = "🌙 สวัสดีเวรดึก ดึกแล้วรักษาสุขภาพด้วยนะคะ/ครับ เป็นกำลังใจให้ค่ะ";
+            } else if (h >= 7 && h < 8) {
+                greetingText = "🌅 สวัสดีเวรเช้าตรู่ และส่งกำลังใจให้เวรดึกที่ใกล้เลิกงานนะคะ/ครับ";
+            } else if (h >= 8 && h < 15) {
+                greetingText = "☀️ สวัสดีเวรเช้าและเวรเช้าตรู่ ขอให้วันนี้เป็นวันที่ดีและราบรื่นนะคะ/ครับ";
+            } else if (h >= 15 && h < 16) {
+                greetingText = "🌤️ สวัสดีเวรเช้า สู้ๆ กับชั่วโมงสุดท้ายของกะนะคะ/ครับ";
+            } else if (h >= 16 && h < 24) {
+                greetingText = "🌆 สวัสดีเวรบ่าย ขอให้การทำงานราบรื่น ไม่มีอุปสรรคนะคะ/ครับ";
+            }
+
+            const greetingEl = document.getElementById('greeting');
+            // ทำอนิเมชั่นเฟดเปลี่ยนข้อความเมื่อถึงเวลาเปลี่ยนกะ
+            if (greetingEl.textContent !== greetingText && greetingEl.textContent !== "กำลังโหลดข้อความ...") {
+                greetingEl.style.opacity = 0; 
+                setTimeout(() => {
+                    greetingEl.textContent = greetingText;
+                    greetingEl.style.opacity = 1; 
+                }, 500);
+            } else if (greetingEl.textContent === "กำลังโหลดข้อความ...") {
+                greetingEl.textContent = greetingText; 
+            }
+
+            // 4. นับถอยหลังเทศกาลสำคัญ (Holiday Countdown)
+            const holidays = [
+                { name: "วันปีใหม่", month: 0, date: 1 },         // 1 มกราคม (เดือนเริ่มนับที่ 0)
+                { name: "วันวาเลนไทน์", month: 1, date: 14 },     // 14 กุมภาพันธ์
+                { name: "วันสงกรานต์", month: 3, date: 13 },      // 13 เมษายน
+                { name: "วันแรงงานแห่งชาติ", month: 4, date: 1 },  // 1 พฤษภาคม
+                { name: "วันแม่แห่งชาติ", month: 7, date: 12 },    // 12 สิงหาคม
+                { name: "วันปิยมหาราช", month: 9, date: 23 },      // 23 ตุลาคม
+                { name: "วันพ่อแห่งชาติ", month: 11, date: 5 },    // 5 ธันวาคม
+                { name: "วันคริสต์มาส", month: 11, date: 25 },     // 25 ธันวาคม
+                { name: "วันสิ้นปี", month: 11, date: 31 }         // 31 ธันวาคม
+            ];
+
+            const currentYear = now.getFullYear();
+            let nextHoliday = null;
+            let minDiff = Infinity;
+
+            for (const h of holidays) {
+                // เช็คว่าหมดวันเทศกาลของปีนี้ไปหรือยัง (เลยเวลา 23:59:59 น. ของวันนั้น)
+                const endOfHoliday = new Date(currentYear, h.month, h.date, 23, 59, 59).getTime();
+                
+                let targetYear = currentYear;
+                if (now.getTime() > endOfHoliday) {
+                    targetYear = currentYear + 1; // ถ้าเลยมาแล้ว ให้ไปนับของปีหน้าแทน
+                }
+
+                const startOfHoliday = new Date(targetYear, h.month, h.date).getTime();
+                const diffTime = startOfHoliday - now.getTime();
+
+                if (diffTime < minDiff) {
+                    minDiff = diffTime;
+                    nextHoliday = h;
+                }
+            }
+
+            if (nextHoliday) {
+                const countdownEl = document.getElementById('countdown');
+                // ถ้า minDiff <= 0 แปลว่าตอนนี้อยู่ในวันเทศกาลนั้นพอดี
+                if (minDiff <= 0) {
+                    countdownEl.innerHTML = `🎉 วันนี้คือ <b>${nextHoliday.name}</b> ขอให้มีความสุขมากๆ ค่ะ/ครับ 🎊`;
+                    countdownEl.classList.add('holiday-active'); // เปิดเอฟเฟกต์วันหยุด
+                } else {
+                    // คำนวณเป็น วัน ชั่วโมง นาที วินาที
+                    const days = Math.floor(minDiff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((minDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((minDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((minDiff % (1000 * 60)) / 1000);
+
+                    countdownEl.innerHTML = `⏳ นับถอยหลังสู่ <b>${nextHoliday.name}</b> อีก <b>${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วินาที</b>`;
+                    countdownEl.classList.remove('holiday-active'); // ปิดเอฟเฟกต์เมื่อยังไม่ถึงวัน
+                }
+            }
+
+            // 5. ตรวจสอบกะการทำงาน (Shift Logic)
+            // เช็คและเพิ่ม/ลบ คลาส 'active' ตามช่วงเวลาของแต่ละกะ
+
+            // เวรเช้าตรู่ (7): 07.00 - 14.59 น.
+            if (h >= 7 && h < 15) {
+                document.getElementById('shift-7').classList.add('active');
+            } else {
+                document.getElementById('shift-7').classList.remove('active');
+            }
+
+            // เวรเช้า (D): 08.00 - 15.59 น.
+            if (h >= 8 && h < 16) {
+                document.getElementById('shift-D').classList.add('active');
+            } else {
+                document.getElementById('shift-D').classList.remove('active');
+            }
+
+            // เวรบ่าย (E): 16.00 - 23.59 น.
+            if (h >= 16 && h < 24) {
+                document.getElementById('shift-E').classList.add('active');
+            } else {
+                document.getElementById('shift-E').classList.remove('active');
+            }
+
+            // เวรดึก (N): 00.00 - 07.59 น.
+            if (h >= 0 && h < 8) {
+                document.getElementById('shift-N').classList.add('active');
+            } else {
+                document.getElementById('shift-N').classList.remove('active');
+            }
+        }
+
+        // เรียกใช้งานครั้งแรกทันทีที่เปิดหน้าเว็บ
+        updateClockAndShift();
+        
+        // สั่งให้ฟังก์ชันทำงานซ้ำทุกๆ 1 วินาที (1000 มิลลิวินาที)
+        setInterval(updateClockAndShift, 1000);
+    </script>
+
+</body>
+</html>
