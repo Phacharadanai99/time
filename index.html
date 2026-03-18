@@ -318,8 +318,38 @@
     </div>
 
     <script>
+        // --- ระบบซิงค์เวลาจากอินเทอร์เน็ต ---
+        let timeOffset = 0; // ตัวแปรเก็บค่าความต่างของเวลาเครื่องกับเวลาสากล
+
+        async function syncInternetTime() {
+            try {
+                // ดึงข้อมูลเวลามาตรฐานของไทย (Asia/Bangkok) จาก API ฟรี
+                const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Bangkok');
+                const data = await response.json();
+                
+                // เวลาสากลที่ได้จากเน็ต (มิลลิวินาที)
+                const internetTime = new Date(data.datetime).getTime();
+                // เวลาปัจจุบันของเครื่องคอมพิวเตอร์ (มิลลิวินาที)
+                const localTime = Date.now();
+                
+                // คำนวณหาค่าความต่าง (ถ้านาฬิกาเครื่องช้ากว่า ค่าจะเป็นบวก)
+                timeOffset = internetTime - localTime;
+                console.log("ซิงค์เวลาจากอินเทอร์เน็ตสำเร็จ! (ปรับชดเชย: " + timeOffset + " ms)");
+            } catch (error) {
+                console.error("ไม่สามารถเชื่อมต่อเน็ตได้ ระบบจะใช้เวลาในเครื่องตามปกติ", error);
+            }
+        }
+
+        // เรียกซิงค์เวลาทันทีที่เปิดหน้าเว็บ
+        syncInternetTime();
+        
+        // ตั้งให้ซิงค์เทียบเวลาใหม่ทุกๆ 1 ชั่วโมง (3,600,000 มิลลิวินาที) เพื่อความแม่นยำ
+        setInterval(syncInternetTime, 3600000);
+
         function updateClockAndShift() {
-            const now = new Date();
+            // ดึงเวลาเครื่องปัจจุบัน แล้วบวกด้วยค่าความต่างที่คำนวณได้จากอินเทอร์เน็ต
+            const now = new Date(Date.now() + timeOffset);
+            
             const h = now.getHours();
             const m = now.getMinutes();
             const s = now.getSeconds();
